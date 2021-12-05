@@ -91,7 +91,7 @@ user:
 # Outbound Email Configuration
 #------------------------------
 mail:
-  host: smtps.google.com
+  host: shcl-a484f.serverlet.com
   port: 587
   username: 
   password: 
@@ -111,7 +111,7 @@ mail:
       message: claudio.borrellizollo@gmail.com
   helpdesk: concorsi@onb.it
   error:
-    enabled: true
+    enabled: false
   create:
     user:
       bcc:
@@ -147,7 +147,7 @@ spring:
   application:
     name: jconon
   profiles:
-    active: dev
+    active: prod
 
 #Tomcat
 server.tomcat.basedir: ./
