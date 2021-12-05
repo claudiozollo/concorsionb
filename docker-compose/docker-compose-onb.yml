@@ -82,18 +82,37 @@ services:
     expose:
       - "5432"
 
+  cool-jconon-onb:
+    image: cool-jconon-onb:latest
+    environment:
+      - REPOSITORY_BASE_URL=http://alfresco:8080/alfresco/
+      - SERVER_SERVLET_CONTEXT-PATH=/
+      - SPRING_PROFILES_ACTIVE=prod,onb
+      - USER_ADMIN_PASSWORD=Cloud.21
+      - LANG=it_IT.UTF-8
+      - LANGUAGE=it_IT:it
+      - LC_ALL=it_IT.UTF-8
+      - 'TZ=Europe/Rome'
+    links:
+      - alfresco-community-erecruitment-acs:alfresco-community-erecruitment-acs
+    labels:
+      - SERVICE_NAME=cool-jconon-onb
+      
   nginx:
     image: nginx:1.13-alpine
     ports:
       - 80:80
+      - 443:443
     environment:
       - 'FASTCGI_READ_TIMEOUT=300s'
     links:
       - alfresco-community-erecruitment-acs:alfresco-community-erecruitment-acs
       - alfresco-search-services:alfresco-search-services
+      - cool-jconon-fofi:cool-jconon-onb
     depends_on:
       - alfresco-community-erecruitment-acs
       - alfresco-search-services
+      - cool-jconon-onb
     labels:
       SERVICE_NAME: nginx
     read_only: true
