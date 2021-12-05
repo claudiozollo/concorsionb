@@ -1,0 +1,174 @@
+security:
+  enable-csrf: true
+
+cookie:
+  secure: true
+
+hazelcast.port: 5601
+hazelcast:
+  members: 127.0.0.1
+  port:
+    autoincrement: false
+  multicast:
+    port: 56327
+  instance:
+    name: jconon
+  mancenter: http://127.0.0.1
+
+
+server:
+  servlet:
+    context-path: /jconon
+
+ajp:
+  port: 8009
+  timeout: 120000
+
+ipa:
+  url:
+    base: https://www.indicepa.gov.it/public-services/opendata-read-service.php
+    amministrazioni: ${ipa.url.base}?dstype=FS&filename=amministrazioni.txt
+
+repository:
+  base:
+    url: http://localhost:8080/alfresco/
+
+org:
+  apache:
+    chemistry:
+      opencmis:
+        binding:
+          atompub:
+            url: ${repository.base.url}api/-default-/public/cmis/versions/1.1/atom
+          browser:
+            url: ${repository.base.url}api/-default-/public/cmis/versions/1.1/browser
+          clientcompression: false
+          compression: true
+          spi:
+            type: browser
+          connecttimeout: 50000
+          readtimeout: 3000000
+          httpinvoker:
+            classname: org.apache.chemistry.opencmis.client.bindings.spi.http.DefaultHttpInvoker
+        session:
+          repository:
+            id: -default-
+siper:
+  url: http://localhost:8080/siper
+  anadip:
+    url: ${siper.url}/json/userinfo
+  sedi:
+    url: ${siper.url}/json/sedi
+  username: admin
+  password: admin
+  cache:
+    timeToLiveSeconds: 86400
+
+helpdesk:
+  url: http://localhost:8080/rest
+  istanza: /HDConcorsi
+  catg:
+    url: ${helpdesk.url}/catg${helpdesk.istanza}
+  user:
+    url: ${helpdesk.url}/user${helpdesk.istanza}
+  ucat:
+    url: ${helpdesk.url}/ucat${helpdesk.istanza}
+  pest:
+    url: ${helpdesk.url}/pest${helpdesk.istanza}
+  username: admin
+  password: admin
+
+user:
+  guest:
+    username: jconon
+    password: jcononpw
+  admin:
+    username: admin
+    password: admin
+
+
+#-----------------------------
+# Outbound Email Configuration
+#------------------------------
+mail:
+  host: smtps.google.com
+  port: 587
+  username: 
+  password: 
+  smtp:
+    host: ${mail.host}
+    user: ${mail.username}
+    password: ${mail.password}
+    auth: false
+    starttls:
+      enable: false
+  encoding: UTF-8
+  from:
+    default: concorsi@onb.it
+  admin: claudio.borrellizollo@gmail.com
+  to:
+    error:
+      message: claudio.borrellizollo@gmail.com
+  helpdesk: concorsi@onb.it
+  error:
+    enabled: true
+  create:
+    user:
+      bcc:
+        enabled: false
+attiva:
+  mail:
+    solleciti: false
+  protocol:
+    application: true
+
+rrd:
+  path: remote-shared,remote
+  skipmd5: false
+
+rest:
+  cache:
+    control: 86400
+#-----------------------
+#Path di salvataggio Log
+#-----------------------
+dataDictionary:
+  path: /Data Dictionary
+
+rbac:
+  path: ${dataDictionary.path}/Web Applications/jconon/WEB-INF/classes/rbac.get.json.ftl
+protocol:
+  path: ${dataDictionary.path}/Web Applications/jconon/WEB-INF/classes/protocollo.json
+
+
+spring:
+  main:
+    allow-bean-definition-overriding: true
+  application:
+    name: jconon
+  profiles:
+    active: dev
+
+#Tomcat
+server.tomcat.basedir: ./
+server.tomcat.access-log-enabled: true
+server.tomcat.access-log-pattern: '%h %l %u %t "%r" %s %b %D'
+
+shell.auth.simple.user.name: ${user.admin.username}
+shell.auth.simple.user.password: ${user.admin.password}
+
+pec:
+  mail:
+    hostImap: imaps.pec.aruba.it
+    hostSmtp: smtps.pec.aruba.it
+    url: imaps://${pec.mail.hostImap}
+    auth: true
+    sslEnable: true
+    port: 995
+    socketFactoryClass: javax.net.ssl.SSLSocketFactory
+    connectiontimeout: 5000
+    timeout: 5000
+
+io:
+  url: https://api.io.italia.it/api/v1
+  subscriptionkey:
