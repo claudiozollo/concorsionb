@@ -2,11 +2,7 @@
 FROM anapsix/alpine-java:jdk8
 MAINTAINER Marco Spasiano <marco.spasiano@cnr.it>
 
-RUN adduser -D -s /bin/sh jconon
-WORKDIR /home/jconon
-USER jconon
-
-ADD target/*.war /opt/jconon.war
+COPY target/*.war /opt/jconon.war
 
 EXPOSE 8080
 

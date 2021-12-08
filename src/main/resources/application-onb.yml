@@ -91,7 +91,7 @@ user:
 # Outbound Email Configuration
 #------------------------------
 mail:
-  host: shcl-a484f.serverlet.com
+  host: smtps.google.com
   port: 587
   username: 
   password: 

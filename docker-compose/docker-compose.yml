@@ -1,99 +1,90 @@
-version: '3.4'
+version: '3.3'
 services:
 
-  alfresco-community-erecruitment-acs:
-    image: consiglionazionalericerche/alfresco-community-erecruitment:7.0.1
+  alfresco:
+    image: consiglionazionalericerche/alfresco-community-erecruitment:latest
+    read_only: true
     ports:
       - 9080:8080
+    command: sh -c 'catalina.sh jpda run'
     environment:
-      JAVA_TOOL_OPTIONS: "-Dencryption.keystore.type=JCEKS -Dencryption.cipherAlgorithm=AES/CBC/PKCS5Padding -Dencryption.keyAlgorithm=AES -Dencryption.keystore.location=/usr/local/tomcat/shared/classes/alfresco/extension/keystore/keystore -Dmetadata-keystore.password=mp6yc0UD9e -Dmetadata-keystore.aliases=metadata -Dmetadata-keystore.metadata.password=oKIWzVdEdA -Dmetadata-keystore.metadata.algorithm=AES"
       JAVA_OPTS: '-Xmx2g'
       LANG: en_US.UTF-8
       LANGUAGE: en_US:en
       LC_ALL: en_US.UTF-8
+      SERVICE_TAGS: webapp
+      SERVICE_NAME: alfresco-community-erecruitment
+    labels:
+      - SERVICE_NAME=alfresco-community-erecruitment
     volumes:
       - ./alfresco-global.properties:/usr/local/tomcat/shared/classes/alfresco-global.properties
-      - ./alf_data:/usr/local/tomcat/alf_data
-
-    depends_on:
-      - alfresco-community-erecruitment-postgres    
+      - ./contentstore:/content_store/
+      - /tmp
+      - /usr/local/tomcat/temp/
+      - ./alfresco_logs:/usr/local/tomcat/logs/
+      - /usr/local/tomcat/conf/Catalina/
+      - /usr/local/tomcat/work/
     links:
-      - activemq:activemq    
+      - pgalfresco:pgalfresco
 
-  alfresco-community-erecruitment-postgres:
-    image: postgres:13.2
+  pgalfresco:
+    image: postgres:9.2
     environment:
-      POSTGRES_DB: alfresco
-      POSTGRES_USER: alfresco
-      POSTGRES_PASSWORD: alfresco
-    command: postgres -c max_connections=300 -c log_min_messages=LOG
+      - POSTGRES_PASSWORD=alfrescopw
+      - POSTGRES_USER=alfresco
+      - POSTGRES_DB=alfresco
+      - PG_WORK_MEM=64MB
+      - PG_MAINTENANCE_WORK_MEM=512MB
+    command: postgres -c max_connections=300 -c log_min_messages=LOG -c 'shared_buffers=512MB'
     volumes:
       - ./pgdata:/var/lib/postgresql/data/
     expose:
       - "5432"
 
-  alfresco-search-services:
-    image: alfresco/alfresco-search-services:1.2.0
+  solr4:
+    image: consiglionazionalericerche/alfresco-solr4-erecruitment:latest
+    read_only: true
     environment:
       - '-Xmx1g'
-      - SOLR_ALFRESCO_HOST=alfresco-community-erecruitment-acs
-      - SOLR_ALFRESCO_PORT=8080
-      - SOLR_SOLR_HOST=alfresco-community-erecruitment-acs
-      - SOLR_SOLR_PORT=8983
-      - SOLR_CREATE_ALFRESCO_DEFAULTS=alfresco,archive
-    expose:
-      - "8983"
-
-  activemq:
-        image: alfresco/alfresco-activemq:5.16.1
-        ports:
-            - 8161:8161 # Web Console
-            - 5672:5672 # AMQP
-            - 61616:61616 # OpenWire
-            - 61613:61613 # STOMP
-  spid-testenv2:
-        image: italia/spid-testenv2
-        ports:
-          - 8088:8088
-        volumes:
-          - ./spid-conf:/app/conf
-        labels:
-          - SERVICE_NAME=spid-testenv2
-
-  helpdesk:
-    image: consiglionazionalericerche/oil:latest
-    ports:
-      - 9081:8080
+    volumes:
+      - /usr/local/tomcat/
+      - /solr-data-store/
+      - /solr4-content/
+      - /solr4-models/
     links:
-      - pgoil:pgoil
-    volumes:
-      - ./standalone-full.xml:/opt/jboss/wildfly/standalone/configuration/standalone-full.xml
+      - alfresco:my-alfresco
 
-  pgoil:
-    image: postgres:9.2
+  cool-jconon-onb:
+    image: cool-jconon-onb:latest
     environment:
-      - POSTGRES_PASSWORD=helpdeskpw
-      - POSTGRES_USER=helpdesk
-      - POSTGRES_DB=helpdeskdb
-    command: postgres -c max_connections=300 -c log_min_messages=LOG
-    volumes:
-      - ./pgdata-helpdesk:/var/lib/postgresql/data/
-      - ./initdb-helpdesk:/docker-entrypoint-initdb.d/      
-    expose:
-      - "5432"
+      - REPOSITORY_BASE_URL=http://alfresco:8080/alfresco/
+      - SERVER_SERVLET_CONTEXT-PATH=/
+      - SPRING_PROFILES_ACTIVE=prod,onb
+      - USER_ADMIN_PASSWORD=admin
+      - LANG=it_IT.UTF-8
+      - LANGUAGE=it_IT:it
+      - LC_ALL=it_IT.UTF-8
+      - 'TZ=Europe/Rome'
+    links:
+      - alfresco:alfresco
+    labels:
+      - SERVICE_NAME=cool-jconon-onb
 
   nginx:
     image: nginx:1.13-alpine
     ports:
       - 80:80
+      - 443:443
     environment:
       - 'FASTCGI_READ_TIMEOUT=300s'
     links:
-      - alfresco-community-erecruitment-acs:alfresco-community-erecruitment-acs
-      - alfresco-search-services:alfresco-search-services
+      - alfresco:alfresco
+      - solr4:solr4
+      - cool-jconon-onb:cool-jconon-onb
     depends_on:
-      - alfresco-community-erecruitment-acs
-      - alfresco-search-services
+      - alfresco
+      - solr4
+      - cool-jconon-onb
     labels:
       SERVICE_NAME: nginx
     read_only: true
